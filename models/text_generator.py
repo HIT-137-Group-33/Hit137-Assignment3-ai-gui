@@ -1,15 +1,10 @@
 from models.base_model import AIModel, ModelCacheMixin
-
-try:
-    from transformers import pipeline, AutoTokenizer, AutoModelForCausalLM
-    TRANSFORMERS_AVAILABLE = True
-except ImportError:
-    TRANSFORMERS_AVAILABLE = False
+from transformers import pipeline
 
 class TextGeneratorModel(AIModel, ModelCacheMixin):
     """
-    Text Generation model demonstrating Multiple Inheritance
-    Using Microsoft's DialoGPT model for conversation
+    Text Generation model with real Hugging Face integration
+    Demonstrating Multiple Inheritance and Method Overriding
     """
     
     def __init__(self):
@@ -17,32 +12,26 @@ class TextGeneratorModel(AIModel, ModelCacheMixin):
         AIModel.__init__(self,
                         "DialoGPT Medium",
                         "Text Generation", 
-                        "Generates conversational text responses using microsoft/DialoGPT-medium")
+                        "Generates conversational text using microsoft/DialoGPT-medium")
         ModelCacheMixin.__init__(self)
-        self.chat_pipeline = None
-        self.history = []
+        self.pipeline = None
     
     def load_model(self):
-        """Method Overriding: Specific implementation for text generation"""
-        if not TRANSFORMERS_AVAILABLE:
-            return "Error: transformers library not available."
-            
-        if not self._is_loaded:
-            try:
-                # Using pipeline as shown in Hugging Face instructions
-                self.chat_pipeline = pipeline(
-                    "text-generation",
-                    model="microsoft/DialoGPT-medium",
-                    tokenizer="microsoft/DialoGPT-medium"
-                )
-                self._is_loaded = True
-                return "Text Generation model loaded successfully!"
-            except Exception as e:
-                return f"Error loading model: {str(e)}"
-        return "Model already loaded"
+        """Method Overriding: Real model loading with error handling"""
+        try:
+            # Real Hugging Face pipeline
+            self.pipeline = pipeline(
+                "text-generation",
+                model="microsoft/DialoGPT-medium",
+                tokenizer="microsoft/DialoGPT-medium"
+            )
+            self._is_loaded = True
+            return "Text Generation model loaded successfully from Hugging Face!"
+        except Exception as e:
+            return f"Error loading model: {str(e)}\n\nPlease install: pip install transformers torch"
     
     def process_input(self, user_input):
-        """Polymorphism: Different implementation for text generation"""
+        """Polymorphism: Real text generation"""
         if not self._is_loaded:
             return "Please load the model first"
         
@@ -52,26 +41,28 @@ class TextGeneratorModel(AIModel, ModelCacheMixin):
             return cached
         
         try:
-            # Generate response using the model
-            response = self.chat_pipeline(
+            # Real text generation
+            response = self.pipeline(
                 user_input,
-                max_length=1000,
-                pad_token_id=self.chat_pipeline.tokenizer.eos_token_id,
+                max_length=150,
+                num_return_sequences=1,
+                pad_token_id=self.pipeline.tokenizer.eos_token_id,
                 no_repeat_ngram_size=3,
                 do_sample=True,
-                top_k=100,
-                top_p=0.7,
-                temperature=0.8
-            )[0]['generated_text']
+                temperature=0.7
+            )
             
-            # Extract only the new response (remove the input)
-            if user_input in response:
-                bot_response = response[len(user_input):].strip()
+            generated_text = response[0]['generated_text']
+            # Remove the input from response to get only the new text
+            if user_input in generated_text:
+                bot_response = generated_text[len(user_input):].strip()
             else:
-                bot_response = response.strip()
+                bot_response = generated_text.strip()
             
-            self.cache_result(user_input, bot_response)
-            return bot_response
+            result = f"🤖 AI Response:\n\n{bot_response}\n\n(Generated using DialoGPT-medium from Hugging Face)"
+            
+            self.cache_result(user_input, result)
+            return result
             
         except Exception as e:
             return f"Error generating text: {str(e)}"
