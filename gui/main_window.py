@@ -17,7 +17,7 @@ class MainWindow:
         
         self._setup_menu()  # Add menu bar as per assignment requirement
         self._setup_gui()
-        self._setup_oop_explanations()
+        self._setup_oop_explanations()  # This must be called BEFORE _populate_oop_explanations
         self._load_models()  # Separate model loading with error handling
         self._on_model_change(None)  # Initialize with default model
     
@@ -98,7 +98,7 @@ Models:
         ttk.Label(header_frame, text="Tkinter AI GUI", font=('Arial', 16, 'bold')).pack()
         ttk.Label(header_frame, text="HIT137 Assignment 3 - AI Model Integration").pack()
         
-        # Model selection frame - MATCHING ASSIGNMENT LAYOUT
+        # Model selection frame
         model_frame = ttk.LabelFrame(main_frame, text="Model Selection", padding="5")
         model_frame.grid(row=1, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
         
@@ -112,7 +112,7 @@ Models:
         ttk.Button(model_frame, text="✔ Load Model", 
                   command=self._load_model).grid(row=0, column=2, padx=(10, 0))
         
-        # Input and Output sections - MATCHING ASSIGNMENT LAYOUT
+        # Input and Output sections
         io_frame = ttk.Frame(main_frame)
         io_frame.grid(row=2, column=0, sticky=(tk.W, tk.E, tk.N, tk.S), pady=(0, 10))
         io_frame.columnconfigure(0, weight=1)
@@ -154,7 +154,7 @@ Models:
         self.image_label = ttk.Label(output_frame, text="Image output will appear here")
         self.image_label.grid(row=1, column=0, pady=(10, 0))
         
-        # Control buttons - MATCHING ASSIGNMENT LAYOUT
+        # Control buttons
         control_frame = ttk.Frame(main_frame)
         control_frame.grid(row=3, column=0, sticky=(tk.W, tk.E), pady=(0, 10))
         
@@ -165,7 +165,7 @@ Models:
         ttk.Button(control_frame, text="Clear", 
                   command=self._clear_output).pack(side=tk.LEFT, padx=(0, 10))
         
-        # Information section - MATCHING ASSIGNMENT LAYOUT
+        # Information section
         info_frame = ttk.LabelFrame(main_frame, text="Model Information & Explanation", padding="10")
         info_frame.grid(row=4, column=0, sticky=(tk.W, tk.E, tk.N, tk.S))
         info_frame.columnconfigure(0, weight=1)
@@ -221,6 +221,7 @@ Models:
     
     def _setup_oop_explanations(self):
         """Setup OOP concepts explanations with detailed implementation"""
+        # CRITICAL FIX: This method must create the oop_explanations attribute
         self.oop_explanations = {
             "Multiple Inheritance": {
                 "where": "TextToImageModel and TextGeneratorModel inherit from both AIModel (abstract base class) and ModelCacheMixin (mixin class) - see models/base_model.py and individual model files",
@@ -246,8 +247,12 @@ Models:
     
     def _populate_oop_explanations(self):
         """Populate OOP explanations in the text widget"""
+        # CRITICAL FIX: Check if oop_explanations exists
+        if not hasattr(self, 'oop_explanations'):
+            self._setup_oop_explanations()
+            
         explanations = "OOP Concepts Implementation in This Project:\n\n"
-        for concept, info in self.oop_explanations.items():
+        for concept, info in self.oop_explanations.items():  # FIXED: oop_explanations (not oop_explanations)
             explanations += f"• {concept}:\n"
             explanations += f"  WHERE: {info['where']}\n"
             explanations += f"  WHY: {info['why']}\n\n"
